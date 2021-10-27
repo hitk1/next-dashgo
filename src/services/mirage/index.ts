@@ -45,6 +45,7 @@ export function makeServer() {
                     { users }
                 )
             });
+            this.get('/users/:id')
             this.post('/users');
 
             this.namespace = '' //é necessário configurar o namespace em branco por conta das API routes do Next
