@@ -11,11 +11,16 @@ import {
 import Link from 'next/link'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
+import { SubmitHandler, useForm } from 'react-hook-form'
+import { useMutation } from 'react-query'
 
 import { Input } from '../../components/Form/Input'
 import { Header } from '../../components/Header'
 import { Sidebar } from '../../components/Sidebar'
-import { SubmitHandler, useForm } from 'react-hook-form'
+import { api } from '../../services/axios'
+import { queryClient } from '../../services/queryClient'
+import { GetServerSideProps } from 'next'
+import { getUser } from '../../services/hooks/useUsers'
 
 type CreateUserFormData = {
     name: string
@@ -32,6 +37,20 @@ const createUserFormSchema = yup.object().shape({
 })
 
 export default function CreateUser() {
+    const createUser = useMutation(async (user: CreateUserFormData) => {
+        const response = await api.post('/users', {
+            user: {
+                ...user,
+                create_at: new Date()
+            }
+        })
+
+        return response.data.user
+    }, {
+        onSuccess: () => {
+            queryClient.invalidateQueries('users')  //é importante que logo após criar/atualizar/deletar um dado, que o cache seja excluído para que os dados sejam atualizados novamente, ou atualizar os dados direto no cache do react query
+        }
+    })
     const {
         register,
         handleSubmit,
@@ -42,7 +61,7 @@ export default function CreateUser() {
     const { errors } = formState
 
     const handleCreateUser: SubmitHandler<CreateUserFormData> = async (values) => {
-
+        await createUser.mutateAsync(values)
     }
 
     return (

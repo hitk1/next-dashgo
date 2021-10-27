@@ -1,14 +1,14 @@
-import { useQuery } from "react-query"
+import { useQuery, UseQueryOptions, UseQueryResult } from "react-query"
 import { api } from "../axios"
 
-type User = {
+export type User = {
     id: string
     name: string
     email: string
     created_at: string
 }
 
-type GetUsersResponse = {
+export type GetUsersResponse = {
     total: number
     users: User[]
 }
@@ -33,7 +33,7 @@ export const getUser = async (page: number = 1): Promise<GetUsersResponse> => {
     return { users, total }
 }
 
-export const useUsers = (page: number) => {
+export const useUsers = (page: number, options?: UseQueryOptions) => {
     /*
         Sempre que tiver varias informações para serem salvas em cache com 'react-query'
         é necessário criar varios indices para os respectivos dados.
@@ -42,5 +42,5 @@ export const useUsers = (page: number) => {
         por isso, o correto é passar o numero da pagina na chave desses registros em cache
         para que a mudança aconteça
     */
-    return useQuery(['users', page], () => getUser(page), { staleTime: 1000 * 60 * 10 })
+    return useQuery(['users', page], () => getUser(page), { staleTime: 1000 * 60 * 10, ...options })
 }

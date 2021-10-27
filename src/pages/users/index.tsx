@@ -22,13 +22,22 @@ import NextLink from 'next/link'
 import { Header } from '../../components/Header'
 import { Pagination } from '../../components/Pagination'
 import { Sidebar } from '../../components/Sidebar'
-import { useUsers } from '../../services/hooks/useUsers'
+import { GetUsersResponse, useUsers } from '../../services/hooks/useUsers'
 import { useState } from 'react'
 import { queryClient } from '../../services/queryClient'
 import { api } from '../../services/axios'
+import { GetServerSideProps } from 'next'
 
-export default function UserList() {
+export default function UserList({ users = [] }) {
     const [page, setPage] = useState(1)
+
+    /*
+    Para fazer integração com SSR do Next, seria preciso passar um 'initialData' pro hook 'useUsers' repassar então pro react query que funcionaria normalmente
+    ex.:
+        useUsers(page, { initialData: users })
+        // React query
+        useQuery(['users', page], () => getUser(page), { staleTime: 1000 * 60 * 10, ...options })   --> "options" representa o 'initialData'
+    */
     const { isLoading, isFetching, error, data } = useUsers(page)
 
     const isWideVersion = useBreakpointValue({
@@ -106,7 +115,7 @@ export default function UserList() {
                                         </Tr>
                                     </Thead>
                                     <Tbody>
-                                        {data.users.map(user => (
+                                        {(data as GetUsersResponse).users.map(user => (
                                             <Tr key={user.id}>
 
                                                 <Td px={["4", "4", "6"]}>
@@ -137,7 +146,7 @@ export default function UserList() {
                                     </Tbody>
                                 </Table>
                                 <Pagination
-                                    totalCountOfRegisters={data.total}
+                                    totalCountOfRegisters={(data as GetUsersResponse).total}
                                     currentPage={page}
                                     onPageChange={setPage}
                                 />
@@ -148,3 +157,13 @@ export default function UserList() {
         </Box>
     )
 }
+
+// export const getServerSideProps: GetServerSideProps = async () => {
+//     const { users } = await getUser()
+
+//     return {
+//         props: {
+//             users
+//         }
+//     }
+// }
